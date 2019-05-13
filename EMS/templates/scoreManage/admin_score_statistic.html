@@ -1,0 +1,142 @@
+{% extends 'student_base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <style>
+   .div-a{ float:left;width:49% }
+   .div-b{ float:left;width:49% }
+    </style>
+    <section class="content-header">
+        <h1>成绩管理子系统
+            <small>Info</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="{% url 'scoreManagement:welcome' %}"><i class="fa fa-dashboard"></i> 主页</a></li>
+            <li class="active">查看成绩统计</li>
+        </ol>
+    </section>
+
+    <section class="content">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">
+                    查看成绩统计
+                </h3>
+            </div>
+            <div class="box-body">
+                  <div class="div-a">
+                  <div class="form-group">
+                  <label>专业</label>
+                    <select  id="major" style="width: 90%;height: 30px" tabindex="-1" aria-hidden="true">
+                    <option value="-1">请选择专业</option>
+                        {% for major in major_type %}
+                        <option value="{{ major.mname }}">{{ major.mname }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                  <label>年级</label>
+                    <select  id="grade1" style="width: 90%;height: 30px" tabindex="-1" aria-hidden="true">
+                    <option value="-1">请选择年级</option>
+                    </select>
+                  </div>
+                  </div>
+                  <div class="div-b">
+                     <div class="form-group">
+                    <label>学院</label>
+                    <select  id="college" style="width: 90%;height: 30px" tabindex="-1" aria-hidden="true">
+                    <option value="-1">请选择学院</option>
+                         {% for college in college_type %}
+                        <option value="{{ college.name }}">{{ college.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                     </div>
+                      <div class="form-group">
+                      <label>年级</label>
+                    <select  id="grade2" style="width: 90%;height: 30px" tabindex="-1" aria-hidden="true">
+                    <option value="-1">请选择年级</option>
+                    </select>
+                      </div>
+                  </div>
+            <div id="chart" style="width: 100%;height:400px"></div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+{% block script %}
+    <!-- jQuery 2.2.3 -->
+    <script src="{% static 'AdminLTE/plugins/jQuery/jquery-2.2.3.min.js' %}"></script>
+    <!-- Bootstrap 3.3.6 -->
+    <script src="{% static 'AdminLTE/bootstrap/js/bootstrap.min.js' %}"></script>
+    <!-- DataTables -->
+    <script src="{% static 'AdminLTE/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'AdminLTE/plugins/datatables/dataTables.bootstrap.min.js' %}"></script>
+    <!-- SlimScroll -->
+    <script src="{% static 'AdminLTE/plugins/slimScroll/jquery.slimscroll.min.js' %}"></script>
+    <!-- FastClick -->
+    <script src="{% static 'AdminLTE/plugins/fastclick/fastclick.js' %}"></script>
+    <!-- AdminLTE App -->
+    <script src="{% static 'AdminLTE/dist/js/app.min.js' %}"></script>
+    <!-- AdminLTE for demo purposes -->
+    <script src="{% static 'AdminLTE/dist/js/demo.js' %}"></script>
+    <!-- page script -->
+     <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts-en.common.js"></script>
+     <script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.js"></script>
+    <script>
+          $(function () {
+               const data={
+                  "major":-1,
+                  "college":-1,
+                  "grade1":-1,
+                  "grade2":-1,
+              };
+              $('#major').change(function () {
+                  var x=$('#major').val();
+                  document.getElementById("grade1").options.length=0;
+                  $('#grade1').append("<option value='-1'>请选择年级</option>");
+                  {% for major_grade in this_major_grade %}
+                      if("{{ major_grade.major__mname }}"==x)
+                         $('#grade1').append("<option value='{{ major_grade.year }}'>{{ major_grade.year }}</option>");
+                  {% endfor %}
+              var x1=$('#major').val();
+              var x3=$('#grade1').val();
+              const data1={
+                  "major":x1,
+                  "grade1":x3,
+              };
+              });
+              $('#college').change(function () {
+                  var x=$('#college').val();
+                  document.getElementById("grade2").options.length=0;
+                  $('#grade2').append("<option value='-1'>请选择年级</option>");
+                  {% for college_grade in this_college_grade %}
+                      if("{{ college_grade.major__in_college__name }}"==x)
+                          $('#grade2').append("<option value='{{ college_grade.year }}'>{{college_grade.year}}</option>" );
+                  {% endfor %}
+              var x2=$('#college').val();
+              var x4=$('#grade2').val();
+              const data1={
+                  "college":x2,
+                  "grade2":x4,
+              };
+              $.ajax(
+                  {
+                    url : "{% url 'scoreManagement:admin_score_statistic' %}",
+                      data: data1,
+                      dataType: 'json',
+                      method: 'GET',
+                      success: function (ret, status) {
+                        console.log(ret);
+                        console.log(status);
+                      },
+                      error: function (xlm, textStaut, errorThrown) {
+                        alert("bai");
+                      },
+                  }
+              );
+              });
+          });
+    </script>
+{% endblock %}
